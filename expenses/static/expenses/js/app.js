@@ -1,6 +1,6 @@
 
 (() => {
-    // MIDNIGHT EMERALD — CHART COLOUR SYSTEM
+    // MIDNIGHT EMERALD & AWWWARDS LUXURY FINTECH CHART SYSTEM
 
     const palette = [
         '#10B981',
@@ -17,7 +17,7 @@
     const chartGrid = 'rgba(255, 255, 255, 0.04)';
 
     function baseOptions() {
-        const isDark = document.documentElement.dataset.theme === 'dark';
+        const isDark = document.documentElement.dataset.theme !== 'light';
 
         const textColor = isDark ? chartText : '#607067';
         const gridColor = isDark ? chartGrid : 'rgba(0, 0, 0, 0.05)';
@@ -32,7 +32,7 @@
             },
 
             animation: {
-                duration: 750,
+                duration: 900,
                 easing: 'easeOutQuart'
             },
 
@@ -43,8 +43,8 @@
                     labels: {
                         usePointStyle: true,
                         pointStyle: 'circle',
-                        boxWidth: 7,
-                        boxHeight: 7,
+                        boxWidth: 8,
+                        boxHeight: 8,
                         padding: 16,
                         color: textColor,
                         font: {
@@ -56,17 +56,18 @@
                 },
 
                 tooltip: {
-                    backgroundColor: isDark ? '#141817' : '#ffffff',
+                    backgroundColor: isDark ? 'rgba(20, 24, 23, 0.95)' : 'rgba(255, 255, 255, 0.98)',
                     titleColor: isDark ? '#F5F7F6' : '#0D1411',
                     bodyColor: isDark ? '#929B96' : '#607067',
-                    borderColor: isDark ? '#252B28' : '#E2E8E5',
+                    borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
                     borderWidth: 1,
-                    padding: 12,
-                    cornerRadius: 8,
+                    padding: 14,
+                    cornerRadius: 12,
                     displayColors: true,
+                    boxPadding: 6,
                     callbacks: {
                         label: context =>
-                            `${context.dataset.label}: ₹${Number(context.raw).toLocaleString('en-IN')}`
+                            ` ${context.dataset.label}: ₹${Number(context.raw).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
                     }
                 }
             },
@@ -116,11 +117,31 @@
 
     window.LedgerlyCharts = {
 
-        // MONTHLY CASH FLOW
+        // MONTHLY CASH FLOW (DUAL BAR WITH MULTI-STOP GRADIENTS)
         cashFlow(id, data) {
             const canvas = document.getElementById(id);
 
             if (!canvas || !window.Chart) return;
+
+            const ctx = canvas.getContext('2d');
+
+            // Create Canvas Multi-Stop Gradients
+            let incomeGradient = '#10B981';
+            let expenseGradient = '#FB7185';
+
+            try {
+                const ig = ctx.createLinearGradient(0, 0, 0, 240);
+                ig.addColorStop(0, '#34D399');
+                ig.addColorStop(1, '#059669');
+                incomeGradient = ig;
+
+                const eg = ctx.createLinearGradient(0, 0, 0, 240);
+                eg.addColorStop(0, '#FDA4AF');
+                eg.addColorStop(1, '#E11D48');
+                expenseGradient = eg;
+            } catch (e) {
+                // Fallback to solid colors if context unavailable
+            }
 
             new Chart(canvas, {
                 type: 'bar',
@@ -130,27 +151,27 @@
 
                     datasets: [
                         {
-                            label: 'Income',
+                            label: 'Inflow',
                             data: data.income,
-                            backgroundColor: '#10b981',
-                            hoverBackgroundColor: '#34d399',
-                            borderRadius: 7,
+                            backgroundColor: incomeGradient,
+                            hoverBackgroundColor: '#34D399',
+                            borderRadius: 8,
                             borderSkipped: false,
-                            maxBarThickness: 25,
+                            maxBarThickness: 28,
                             categoryPercentage: 0.65,
-                            barPercentage: 0.8
+                            barPercentage: 0.82
                         },
 
                         {
-                            label: 'Expenses',
+                            label: 'Outflow',
                             data: data.expenses,
-                            backgroundColor: '#fb7185',
-                            hoverBackgroundColor: '#fda4af',
-                            borderRadius: 7,
+                            backgroundColor: expenseGradient,
+                            hoverBackgroundColor: '#FDA4AF',
+                            borderRadius: 8,
                             borderSkipped: false,
-                            maxBarThickness: 25,
+                            maxBarThickness: 28,
                             categoryPercentage: 0.65,
-                            barPercentage: 0.8
+                            barPercentage: 0.82
                         }
                     ]
                 },
@@ -159,16 +180,14 @@
             });
         },
 
-        // SPENDING CATEGORY
+        // SPENDING CATEGORY DOUGHNUT
         category(id, data) {
             const canvas = document.getElementById(id);
 
             if (!canvas || !window.Chart) return;
 
             const hasData = data.category_values.length > 0;
-
-            const isDark =
-                document.documentElement.dataset.theme === 'dark';
+            const isDark = document.documentElement.dataset.theme !== 'light';
 
             new Chart(canvas, {
                 type: 'doughnut',
@@ -188,35 +207,32 @@
                             : [isDark ? '#1B211E' : '#E2E8E5'],
 
                         borderColor: isDark ? '#141817' : '#ffffff',
-                        borderWidth: 2,
-                        hoverOffset: 6,
-                        spacing: 3
+                        borderWidth: 3,
+                        hoverOffset: 8,
+                        spacing: 2
                     }]
                 },
 
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-
-                    cutout: '75%',
+                    cutout: '72%',
 
                     animation: {
                         animateRotate: true,
-                        duration: 800
+                        duration: 850
                     },
 
                     plugins: {
                         legend: {
                             position: 'bottom',
-
                             labels: {
                                 usePointStyle: true,
                                 pointStyle: 'circle',
                                 boxWidth: 7,
                                 boxHeight: 7,
                                 color: isDark ? chartText : '#607067',
-                                padding: 16,
-
+                                padding: 14,
                                 font: {
                                     family: 'Plus Jakarta Sans',
                                     size: 11,
@@ -227,30 +243,16 @@
 
                         tooltip: {
                             enabled: hasData,
-
-                            backgroundColor: isDark
-                                ? '#141817'
-                                : '#ffffff',
-
-                            titleColor: isDark
-                                ? '#F5F7F6'
-                                : '#0D1411',
-
-                            bodyColor: isDark
-                                ? '#929B96'
-                                : '#607067',
-
-                            borderColor: isDark
-                                ? '#252B28'
-                                : '#E2E8E5',
-
+                            backgroundColor: isDark ? 'rgba(20, 24, 23, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+                            titleColor: isDark ? '#F5F7F6' : '#0D1411',
+                            bodyColor: isDark ? '#929B96' : '#607067',
+                            borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
                             borderWidth: 1,
                             padding: 12,
-                            cornerRadius: 8,
-
+                            cornerRadius: 10,
                             callbacks: {
                                 label: context =>
-                                    `${context.label}: ₹${Number(context.raw).toLocaleString('en-IN')}`
+                                    ` ${context.label}: ₹${Number(context.raw).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
                             }
                         }
                     }
@@ -258,6 +260,21 @@
             });
         }
     };
+
+    // AWWWARDS DYNAMIC RADIAL MOUSE GLOW ON BENTO CARDS
+    document.addEventListener('DOMContentLoaded', () => {
+        const bentoCards = document.querySelectorAll('.bento-card, .stat-card, .panel');
+
+        bentoCards.forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    });
 
     // MOBILE SIDEBAR
     const menuButton = document.querySelector('.menu-toggle');
@@ -279,14 +296,10 @@
     });
 
     // TRANSACTION CATEGORY FILTER
-    const transactionType =
-        document.getElementById('id_transaction_type');
-
-    const category =
-        document.getElementById('id_category');
+    const transactionType = document.getElementById('id_transaction_type');
+    const category = document.getElementById('id_category');
 
     if (transactionType && category) {
-
         const filterCategories = () => {
             const selectedType = transactionType.value;
             let hasValidSelection = false;

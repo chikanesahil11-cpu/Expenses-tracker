@@ -8,6 +8,7 @@
 
     const applyTheme = (theme) => {
         document.documentElement.dataset.theme = theme;
+        document.documentElement.setAttribute('data-bs-theme', theme);
 
         document.querySelectorAll('[data-theme-toggle]').forEach(button => {
             const label = button.querySelector('span');
