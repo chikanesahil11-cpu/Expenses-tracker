@@ -1,0 +1,182 @@
+{% extends 'expenses/base.html' %}
+{% load humanize %}
+
+{% block title %}Financial Analytics & Reports · Ledgerly{% endblock %}
+
+{% block content %}
+<!-- =========================================
+     PAGE HEADER
+========================================= -->
+<div class="page-heading premium-heading mb-4">
+    <div>
+        <p class="eyebrow">EXECUTIVE INTELLIGENCE</p>
+        <h1>Financial Reports & Analytics</h1>
+        <p>Comprehensive monthly, yearly, and category cash flow analytics derived from verified database activity.</p>
+    </div>
+
+    <div class="heading-actions d-flex gap-2">
+        <a class="btn btn-light" href="{% url 'transaction_export_csv' %}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export CSV
+        </a>
+        <a class="btn btn-primary" href="{% url 'financial_report_pdf' %}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download PDF Report
+        </a>
+    </div>
+</div>
+
+<!-- =========================================
+     EXECUTIVE SUMMARY BAR
+========================================= -->
+<section class="report-summary mb-4">
+    <div>
+        <span>ALL-TIME INCOME</span>
+        <strong class="amount-income">₹{{ income|floatformat:2|intcomma }}</strong>
+    </div>
+    <div>
+        <span>ALL-TIME EXPENSES</span>
+        <strong class="amount-expense">₹{{ expenses|floatformat:2|intcomma }}</strong>
+    </div>
+    <div>
+        <span>NET WORTH BUFFER</span>
+        <strong>₹{{ balance|floatformat:2|intcomma }}</strong>
+    </div>
+    <div>
+        <span>SAVINGS RATE</span>
+        <strong class="text-success">{{ savings_rate|floatformat:1 }}%</strong>
+    </div>
+</section>
+
+<!-- =========================================
+     MINI ANALYTICS GRID
+========================================= -->
+<section class="analytics-mini-grid mb-4">
+    <article class="panel analytics-mini">
+        <span>YEAR TO DATE ({{ current_year }})</span>
+        <strong class="text-success">₹{{ year_balance|floatformat:2|intcomma }}</strong>
+        <p>₹{{ year_income|floatformat:0|intcomma }} inflow · ₹{{ year_expenses|floatformat:0|intcomma }} outflow in {{ current_year }}</p>
+    </article>
+
+    <article class="panel analytics-mini">
+        <span>CURRENT MONTH BUDGET</span>
+        <strong>{{ budget_summary.percentage|floatformat:1 }}% used</strong>
+        <p>
+            {% if budget_summary.total_budget %}
+                ₹{{ budget_summary.total_spent|floatformat:0|intcomma }} of ₹{{ budget_summary.total_budget|floatformat:0|intcomma }} budgeted
+            {% else %}
+                No current-month budget limits configured
+            {% endif %}
+        </p>
+    </article>
+
+    <article class="panel analytics-mini">
+        <span>TRANSACTION VOLUME</span>
+        <strong>{{ transaction_count }}</strong>
+        <p>Total financial records contributing to this analysis.</p>
+    </article>
+</section>
+
+<!-- =========================================
+     CHART INTELLIGENCE PANELS
+========================================= -->
+<section class="dashboard-grid reports-grid mb-4">
+    <article class="panel chart-panel wide-panel">
+        <div class="panel-heading">
+            <div>
+                <h2>12-Month Cash Flow Trend</h2>
+                <p>Monthly income vs expense performance over the past year.</p>
+            </div>
+            <span class="panel-badge">12-Month Trajectory</span>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="reportMonthlyChart"></canvas>
+        </div>
+    </article>
+
+    <article class="panel chart-panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Expense Allocation</h2>
+                <p>Category distribution of all expenses.</p>
+            </div>
+        </div>
+        <div class="chart-wrap doughnut-wrap">
+            <canvas id="reportCategoryChart"></canvas>
+        </div>
+    </article>
+</section>
+
+<!-- =========================================
+     DETAILED BREAKDOWNS (CATEGORIES & ACCOUNTS)
+========================================= -->
+<div class="row g-3">
+    <!-- Top Expense Categories -->
+    <div class="col-lg-7">
+        <section class="panel p-4 h-100">
+            <div class="panel-heading mb-3">
+                <div>
+                    <h2>Top Spending Categories</h2>
+                    <p>Highest allocation categories ranked by all-time spending volume.</p>
+                </div>
+            </div>
+
+            {% if top_categories %}
+                <div class="d-flex flex-column gap-3">
+                    {% for category in top_categories %}
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold">{{ category.category__name }}</span>
+                                <div>
+                                    <strong class="font-numeric">₹{{ category.total|floatformat:2|intcomma }}</strong>
+                                    <small class="text-muted ms-1">({{ category.percentage }}%)</small>
+                                </div>
+                            </div>
+                            <div class="progress premium-progress" style="height: 6px;">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ category.percentage }}%;"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No expense records found to generate category ranking.</p>
+            {% endif %}
+        </section>
+    </div>
+
+    <!-- Account-Wise Spending -->
+    <div class="col-lg-5">
+        <section class="panel p-4 h-100">
+            <div class="panel-heading mb-3">
+                <div>
+                    <h2>Wallet & Account Outflow</h2>
+                    <p>Expenditure tracked by source account.</p>
+                </div>
+            </div>
+
+            {% if account_breakdown %}
+                <div class="d-flex flex-column gap-3">
+                    {% for acc in account_breakdown %}
+                        <div class="d-flex justify-content-between align-items-center p-2 rounded-3 border">
+                            <span class="fw-bold">{{ acc.account__name }}</span>
+                            <strong class="text-danger font-numeric">−₹{{ acc.total|floatformat:2|intcomma }}</strong>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">Assign accounts to your transactions to see account-level spending breakdown.</p>
+            {% endif %}
+        </section>
+    </div>
+</div>
+
+{{ chart_data|json_script:'report-chart-data' }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const reportData = JSON.parse(document.getElementById('report-chart-data').textContent);
+    LedgerlyCharts.cashFlow('reportMonthlyChart', reportData);
+    LedgerlyCharts.category('reportCategoryChart', reportData);
+</script>
+{% endblock %}

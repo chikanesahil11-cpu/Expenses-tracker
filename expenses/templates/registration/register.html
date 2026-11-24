@@ -1,0 +1,21 @@
+{% extends 'expenses/base.html' %}
+{% block title %}Create account · Ledgerly{% endblock %}
+{% block auth_content %}
+<section class="auth-card auth-card-wide">
+  <p class="eyebrow">GET STARTED</p>
+  <h1>Take control of your money.</h1>
+  <p class="auth-subtitle">Create your free personal finance workspace.</p>
+  <form method="post" class="auth-form" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>{{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text|safe }}</div>{% endif %}
+        {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
+      </div>
+    {% endfor %}
+    <button class="btn btn-primary w-100 btn-lg mt-2" type="submit">Create account</button>
+  </form>
+  <p class="auth-switch">Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+</section>
+{% endblock %}

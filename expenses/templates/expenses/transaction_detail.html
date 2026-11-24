@@ -1,0 +1,147 @@
+{% extends 'expenses/base.html' %}
+{% load humanize %}
+
+{% block title %}{{ transaction.title }} · Ledgerly{% endblock %}
+
+{% block content %}
+<div class="page-heading compact-heading premium-heading">
+    <div>
+        <p class="eyebrow">TRANSACTION DETAILS</p>
+        <h1>{{ transaction.title }}</h1>
+        <p>Review comprehensive financial entry data, account allocation, and timestamp history.</p>
+    </div>
+
+    <div class="heading-actions">
+        <a class="btn btn-light" href="{% url 'transaction_list' %}">
+            <span aria-hidden="true">←</span> Back to list
+        </a>
+
+        <a class="btn btn-outline-primary" href="{% url 'transaction_duplicate' transaction.pk %}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Duplicate
+        </a>
+
+        <a class="btn btn-primary" href="{% url 'transaction_update' transaction.pk %}">
+            <span aria-hidden="true">✎</span> Edit
+        </a>
+    </div>
+</div>
+
+<section class="panel detail-card transaction-detail-card">
+    <!-- Transaction Hero Banner -->
+    <div class="detail-hero">
+        <div class="detail-type-icon {% if transaction.transaction_type == 'income' %}income-icon{% else %}expense-icon{% endif %}">
+            {% if transaction.transaction_type == 'income' %}↗{% else %}↘{% endif %}
+        </div>
+
+        <div class="detail-hero-info">
+            <span class="detail-overline">TRANSACTION AMOUNT</span>
+            <div class="detail-amount {% if transaction.transaction_type == 'income' %}amount-income{% else %}amount-expense{% endif %}">
+                {% if transaction.transaction_type == 'income' %}+{% else %}−{% endif %}₹{{ transaction.amount|floatformat:2|intcomma }}
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-1">
+                <span class="type-label {{ transaction.transaction_type }}">
+                    {{ transaction.get_transaction_type_display }}
+                </span>
+                <span class="category-pill">
+                    {{ transaction.category.name }}
+                </span>
+                {% if transaction.recurring_source %}
+                    <span class="badge bg-secondary">Recurring: {{ transaction.recurring_source.get_frequency_display }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    <!-- Structured Transaction Information -->
+    <div class="detail-section-heading">
+        <div>
+            <p class="eyebrow">ENTRY BREAKDOWN</p>
+            <h2>Transaction details</h2>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-item">
+            <span class="detail-label">CATEGORY</span>
+            <strong>{{ transaction.category.name }}</strong>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">ACCOUNT / WALLET</span>
+            {% if transaction.account %}
+                <strong>{{ transaction.account.name }} <small class="text-muted">({{ transaction.account.get_account_type_display }})</small></strong>
+            {% else %}
+                <span class="text-muted">Unassigned wallet</span>
+            {% endif %}
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">PAYMENT METHOD</span>
+            <strong>{{ transaction.get_payment_method_display|default:'Not specified' }}</strong>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">TRANSACTION DATE</span>
+            <strong>{{ transaction.date|date:'d F Y' }}</strong>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">LOGGED AT</span>
+            <strong>{{ transaction.created_at|date:'d M Y, H:i' }}</strong>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">LAST MODIFIED</span>
+            <strong>{{ transaction.updated_at|date:'d M Y, H:i' }}</strong>
+        </div>
+    </div>
+
+    <!-- Notes & Description -->
+    {% if transaction.description %}
+    <div class="detail-note">
+        <div class="detail-section-heading">
+            <div>
+                <p class="eyebrow">NOTES & MEMO</p>
+                <h2>Description</h2>
+            </div>
+        </div>
+        <p>{{ transaction.description|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Actions Toolbar -->
+    <div class="detail-actions">
+        <a class="btn btn-outline-primary" href="{% url 'transaction_update' transaction.pk %}">
+            Edit transaction
+        </a>
+        <a class="btn btn-outline-primary" href="{% url 'transaction_duplicate' transaction.pk %}">
+            Duplicate as new
+        </a>
+        <a class="btn btn-light" href="{% url 'transaction_list' %}">
+            Back to transaction list
+        </a>
+    </div>
+
+    <!-- Danger Zone: Deletion -->
+    <div class="danger-zone">
+        <div class="danger-zone-info">
+            <strong>Delete this transaction</strong>
+            <p>Permanently remove this record from your database. This action cannot be undone.</p>
+        </div>
+
+        <form method="post" action="{% url 'transaction_delete' transaction.pk %}">
+            {% csrf_token %}
+            <button
+                class="btn btn-danger"
+                type="submit"
+                data-confirm="Delete ‘{{ transaction.title|escapejs }}’? This action cannot be undone."
+            >
+                Delete transaction
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}

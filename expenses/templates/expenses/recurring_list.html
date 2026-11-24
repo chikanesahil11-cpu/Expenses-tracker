@@ -1,0 +1,142 @@
+{% extends 'expenses/base.html' %}
+{% load humanize %}
+
+{% block title %}Recurring Schedules · Ledgerly{% endblock %}
+
+{% block content %}
+<!-- =========================================
+     PAGE HEADER
+========================================= -->
+<div class="page-heading premium-heading mb-3">
+    <div>
+        <p class="eyebrow">AUTOMATED CASH FLOW</p>
+        <h1>Recurring Transactions</h1>
+        <p>Automate recurring salary, subscriptions, rent, and bills with duplicate prevention.</p>
+    </div>
+
+    <div class="heading-actions d-flex gap-2">
+        <form method="post" action="{% url 'recurring_run' %}">
+            {% csrf_token %}
+            <button class="btn btn-light" type="submit">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                ↻ Generate Due Now
+            </button>
+        </form>
+
+        <a class="btn btn-primary" href="{% url 'recurring_create' %}">
+            ＋ Schedule Recurring
+        </a>
+    </div>
+</div>
+
+<!-- =========================================
+     RECURRING OVERVIEW CARDS
+========================================= -->
+<section class="stats-grid premium-stats mb-4">
+    <article class="stat-card balance-card">
+        <span class="stat-icon">↻</span>
+        <p>Active Schedules</p>
+        <h2>{{ active_count }} <small class="text-muted">of {{ total_count }}</small></h2>
+        <small>Automated schedules currently active</small>
+    </article>
+
+    <article class="stat-card income-card">
+        <span class="stat-icon">↗</span>
+        <p>Recurring Monthly Inflow</p>
+        <h2 class="amount-income">₹{{ monthly_income|floatformat:2|intcomma }}</h2>
+        <small>Expected monthly recurring credits</small>
+    </article>
+
+    <article class="stat-card expense-card">
+        <span class="stat-icon">↘</span>
+        <p>Recurring Monthly Commitment</p>
+        <h2 class="amount-expense">₹{{ monthly_commitment|floatformat:2|intcomma }}</h2>
+        <small>Fixed recurring monthly debits</small>
+    </article>
+</section>
+
+<!-- =========================================
+     RECURRING TRANSACTIONS TABLE
+========================================= -->
+<section class="panel recent-panel">
+    <div class="panel-heading">
+        <div>
+            <h2>Scheduled Rules</h2>
+            <p>Transactions generated automatically when due.</p>
+        </div>
+        <span class="category-pill">{{ total_count }} Total Rules</span>
+    </div>
+
+    {% if recurring_items %}
+        <div class="table-responsive">
+            <table class="table transaction-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>SCHEDULE</th>
+                        <th>CATEGORY</th>
+                        <th>FREQUENCY</th>
+                        <th>NEXT RUN</th>
+                        <th>STATUS</th>
+                        <th class="text-end">AMOUNT</th>
+                        <th class="text-end">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in recurring_items %}
+                        <tr>
+                            <td>
+                                <strong class="transaction-name">{{ item.title }}</strong>
+                                {% if item.description %}
+                                    <small>{{ item.description|truncatechars:38 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="category-pill">{{ item.category.name }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ item.get_frequency_display }}</span>
+                            </td>
+                            <td class="muted">
+                                <strong>{{ item.next_run|date:'d M Y' }}</strong>
+                                {% if item.end_date %}
+                                    <small class="d-block text-muted">Ends {{ item.end_date|date:'d M Y' }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Paused</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end amount {% if item.transaction_type == 'income' %}amount-income{% else %}amount-expense{% endif %}">
+                                {% if item.transaction_type == 'income' %}+{% else %}−{% endif %}₹{{ item.amount|floatformat:2|intcomma }}
+                            </td>
+                            <td class="text-end action-cell">
+                                <form method="post" action="{% url 'recurring_toggle' item.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button class="icon-action" type="submit">
+                                        {% if item.is_active %}Pause{% else %}Resume{% endif %}
+                                    </button>
+                                </form>
+                                <a class="icon-action" href="{% url 'recurring_update' item.pk %}">Edit</a>
+                                <form method="post" action="{% url 'recurring_delete' item.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button class="icon-action danger" type="submit" data-confirm="Delete recurring schedule ‘{{ item.title|escapejs }}’?">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">↻</div>
+            <h3>No recurring transactions scheduled</h3>
+            <p>Schedule subscriptions, salary, rent, or utilities to automate monthly recordkeeping.</p>
+            <a class="btn btn-primary" href="{% url 'recurring_create' %}">Schedule recurring</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

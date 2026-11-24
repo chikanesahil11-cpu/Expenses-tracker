@@ -1,0 +1,99 @@
+{% extends 'expenses/base.html' %}
+{% load humanize %}
+
+{% block title %}Accounts & Wallets · Ledgerly{% endblock %}
+
+{% block content %}
+<!-- =========================================
+     PAGE HEADER
+========================================= -->
+<div class="page-heading premium-heading">
+    <div>
+        <p class="eyebrow">PORTFOLIO & ASSET STRUCTURE</p>
+        <h1>Accounts & Wallets</h1>
+        <p>Monitor your liquid cash, bank balances, credit accounts, and investments.</p>
+    </div>
+
+    <div class="heading-actions">
+        <a class="btn btn-primary" href="{% url 'account_create' %}">
+            ＋ Add Account
+        </a>
+    </div>
+</div>
+
+<!-- =========================================
+     OVERVIEW CARDS
+========================================= -->
+<section class="stats-grid premium-stats mb-4">
+    <article class="stat-card balance-card">
+        <span class="stat-icon">◈</span>
+        <p>Total Portfolio Balance</p>
+        <h2>₹{{ total_balance|floatformat:2|intcomma }}</h2>
+        <small>Combined balance across {{ account_count }} account{{ account_count|pluralize }}</small>
+    </article>
+
+    <article class="stat-card count-card">
+        <span class="stat-icon">▦</span>
+        <p>Active Accounts</p>
+        <h2>{{ account_count }}</h2>
+        <small>Wallets and accounts configured</small>
+    </article>
+</section>
+
+<!-- =========================================
+     ACCOUNTS GRID
+========================================= -->
+{% if accounts %}
+    <section class="row g-3">
+        {% for account in accounts %}
+            <div class="col-md-6 col-lg-4">
+                <article class="panel h-100 p-4 d-flex flex-column justify-content-between position-relative">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="width: 12px; height: 12px; border-radius: 50%; background: {{ account.color|default:'#10b981' }}; display: inline-block;"></span>
+                                <h3 class="h5 mb-0 fw-bold">{{ account.name }}</h3>
+                            </div>
+                            <span class="badge bg-secondary">{{ account.get_account_type_display }}</span>
+                        </div>
+
+                        <div class="my-3">
+                            <span class="text-muted small d-block">CURRENT BALANCE</span>
+                            <h2 class="h3 mb-0 fw-bold text-success font-numeric">
+                                ₹{{ account.balance|floatformat:2|intcomma }}
+                            </h2>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2 my-2">
+                            <span class="category-pill">{{ account.tx_count }} transaction{{ account.tx_count|pluralize }}</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-3">
+                        <a href="{% url 'transaction_list' %}?account={{ account.pk }}" class="text-link small fw-bold">
+                            View transactions →
+                        </a>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="{% url 'account_update' account.pk %}" class="icon-action" title="Edit account">Edit</a>
+                            <form method="post" action="{% url 'account_delete' account.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="icon-action danger" data-confirm="Delete account ‘{{ account.name|escapejs }}’? Transactions linked to it will remain unassigned.">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        {% endfor %}
+    </section>
+{% else %}
+    <div class="panel empty-state full-empty text-center p-5">
+        <div class="empty-icon mb-3">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+        </div>
+        <h3>No accounts configured yet</h3>
+        <p class="text-muted mb-4">Set up checking accounts, credit cards, or cash wallets to track where your money lives and flows.</p>
+        <a class="btn btn-primary" href="{% url 'account_create' %}">＋ Add your first account</a>
+    </div>
+{% endif %}
+{% endblock %}

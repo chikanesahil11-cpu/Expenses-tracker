@@ -1,0 +1,6 @@
+{% extends 'expenses/base.html' %}
+{% block title %}{{ page_title }} · Ledgerly{% endblock %}
+{% block content %}
+<div class="page-heading compact-heading"><div><p class="eyebrow">MONEY PLANNING</p><h1>{{ page_title }}</h1><p>Make a change and keep your financial plan current.</p></div><a class="btn btn-light" href="{% url back_url %}">Cancel</a></div>
+<section class="panel form-panel"><form method="post" novalidate>{% csrf_token %}{% if form.non_field_errors %}<div class="form-error">{{ form.non_field_errors }}</div>{% endif %}<div class="form-grid management-grid">{% for field in form %}<div class="field-group {% if field.name == 'description' or field.name == 'name' %}wide-field{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}{% if not field.field.required %} <span>Optional</span>{% endif %}</label>{{ field }}{% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}{% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}</div>{% endfor %}</div><div class="form-actions"><a class="btn btn-light" href="{% url back_url %}">Cancel</a><button class="btn btn-primary" type="submit">{{ submit_label }}</button></div></form></section>
+{% endblock %}

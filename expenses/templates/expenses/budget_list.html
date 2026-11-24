@@ -1,0 +1,128 @@
+{% extends 'expenses/base.html' %}
+{% load humanize %}
+
+{% block title %}Budgets · Ledgerly{% endblock %}
+
+{% block content %}
+<!-- =========================================
+     PAGE HEADER
+========================================= -->
+<div class="page-heading premium-heading mb-3">
+    <div>
+        <p class="eyebrow">SPENDING LIMITS & CONTROL</p>
+        <h1>Budgets</h1>
+        <p>Set category spending limits, track burn rates, and receive automated pacing alerts.</p>
+    </div>
+
+    <div class="heading-actions">
+        <a class="btn btn-primary" href="{% url 'budget_create' %}">
+            ＋ Set a budget
+        </a>
+    </div>
+</div>
+
+<!-- =========================================
+     TOOLBAR & MONTH SELECTOR
+========================================= -->
+<section class="panel filter-panel mb-4 p-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <form method="get" class="d-flex align-items-center gap-2">
+        <label for="id_month" class="small fw-bold text-muted text-nowrap">VIEW MONTH:</label>
+        <input class="form-control form-control-sm" id="id_month" type="month" name="month" value="{{ selected_month|date:'Y-m' }}">
+        <button class="btn btn-sm btn-outline-primary" type="submit">View</button>
+    </form>
+
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+        <div>
+            <span class="small text-muted d-block">TOTAL PLANNED</span>
+            <strong class="h6 mb-0 fw-bold">₹{{ summary.total_budget|floatformat:2|intcomma }}</strong>
+        </div>
+        <div>
+            <span class="small text-muted d-block">TOTAL SPENT</span>
+            <strong class="h6 mb-0 fw-bold text-danger">₹{{ summary.total_spent|floatformat:2|intcomma }}</strong>
+        </div>
+        <div>
+            <span class="small text-muted d-block">REMAINING BUFFER</span>
+            <strong class="h6 mb-0 fw-bold {% if summary.remaining >= 0 %}text-success{% else %}text-danger{% endif %}">
+                ₹{{ summary.remaining|floatformat:2|intcomma }}
+            </strong>
+        </div>
+        <div>
+            <span class="small text-muted d-block">PACING</span>
+            <span class="badge {% if summary.percentage >= 100 %}bg-danger{% elif summary.percentage >= 80 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                {{ summary.percentage|floatformat:1 }}% used
+            </span>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================
+     BUDGET CARDS GRID
+========================================= -->
+{% if budgets %}
+    <section class="row g-3">
+        {% for budget in budgets %}
+            <div class="col-md-6 col-lg-4">
+                <article class="panel h-100 p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="category-pill fw-bold">{{ budget.category.name }}</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <a class="icon-action" href="{% url 'budget_update' budget.pk %}">Edit</a>
+                                <form method="post" action="{% url 'budget_delete' budget.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button class="icon-action danger" type="submit" data-confirm="Delete budget for ‘{{ budget.category.name|escapejs }}’?">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="my-3">
+                            <span class="text-muted small d-block">SPENT / BUDGETED</span>
+                            <div class="d-flex align-items-baseline gap-2">
+                                <h3 class="h4 mb-0 fw-bold font-numeric">₹{{ budget.spent|floatformat:2|intcomma }}</h3>
+                                <span class="text-muted small">of ₹{{ budget.amount|floatformat:2|intcomma }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="progress premium-progress my-3" style="height: 8px;">
+                            <div class="progress-bar {% if budget.percentage >= 100 %}bg-danger{% elif budget.percentage >= 80 %}bg-warning{% else %}bg-success{% endif %}"
+                                 role="progressbar"
+                                 style="width: {{ budget.bar_percentage }}%;">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center small text-muted">
+                            <span class="fw-bold {% if budget.percentage >= 100 %}text-danger{% elif budget.percentage >= 80 %}text-warning{% else %}text-success{% endif %}">
+                                {{ budget.percentage|floatformat:1 }}% utilized
+                            </span>
+                            <span>
+                                {% if budget.remaining >= 0 %}
+                                    ₹{{ budget.remaining|floatformat:2|intcomma }} remaining
+                                {% else %}
+                                    Over by ₹{{ budget.remaining|floatformat:2|intcomma|cut:'-' }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if is_current_month and days_remaining > 0 and budget.remaining > 0 %}
+                        <div class="pt-3 border-top mt-3 small d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Safe daily allowance:</span>
+                            <strong class="text-success">₹{{ budget.daily_allowance|floatformat:2|intcomma }}/day</strong>
+                        </div>
+                    {% endif %}
+                </article>
+            </div>
+        {% endfor %}
+    </section>
+{% else %}
+    <div class="panel empty-state full-empty text-center p-5">
+        <div class="empty-icon mb-3">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+        </div>
+        <h3>No budgets set for {{ selected_month|date:'F Y' }}</h3>
+        <p class="text-muted mb-4">Set category limits to track real-time spending progress and maintain financial discipline.</p>
+        <a class="btn btn-primary" href="{% url 'budget_create' %}">＋ Set your first budget</a>
+    </div>
+{% endif %}
+{% endblock %}

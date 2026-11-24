@@ -1,0 +1,319 @@
+
+{% extends 'expenses/base.html' %}
+
+{% block title %}{{ page_title }} · Ledgerly{% endblock %}
+
+{% block content %}
+
+<!-- =========================================
+     PAGE HEADER
+========================================= -->
+
+<div class="page-heading compact-heading premium-heading">
+
+    <div>
+        <p class="eyebrow">TRANSACTION MANAGEMENT</p>
+
+        <h1>{{ page_title }}</h1>
+
+        <p>
+            Keep your financial records complete,
+            organized, and up to date.
+        </p>
+    </div>
+
+    <a
+        class="btn btn-light"
+        href="{% if transaction %}{% url 'transaction_detail' transaction.pk %}{% else %}{% url 'transaction_list' %}{% endif %}"
+    >
+        ← Cancel
+    </a>
+
+</div>
+
+
+<!-- =========================================
+     TRANSACTION FORM
+========================================= -->
+
+<section class="panel form-panel transaction-form-panel">
+
+    <div class="panel-heading form-panel-heading">
+
+        <div>
+            <p class="eyebrow">FINANCIAL DETAILS</p>
+
+            <h2>Transaction information</h2>
+
+            <p>
+                Enter the details below to save your transaction.
+            </p>
+        </div>
+
+        <div class="form-heading-icon">
+            ₹
+        </div>
+
+    </div>
+
+
+    <form method="post" novalidate>
+
+        {% csrf_token %}
+
+
+        <!-- Non-field Errors -->
+
+        {% if form.non_field_errors %}
+
+            <div class="form-error" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+
+        {% endif %}
+
+
+        <!-- =================================
+             FORM FIELDS
+        ================================== -->
+
+        <div class="form-grid">
+
+            <!-- Transaction Type -->
+
+            <div class="field-group">
+
+                <label for="{{ form.transaction_type.id_for_label }}">
+                    Transaction type
+                    <span class="required-mark">*</span>
+                </label>
+
+                {{ form.transaction_type }}
+
+                {% if form.transaction_type.errors %}
+
+                    <div class="field-errors" role="alert">
+                        {{ form.transaction_type.errors }}
+                    </div>
+
+                {% endif %}
+
+                <small class="field-hint">
+                    Select whether this is income or an expense.
+                </small>
+
+            </div>
+
+
+            <!-- Category -->
+
+            <div class="field-group">
+
+                <label for="{{ form.category.id_for_label }}">
+                    Category
+                    <span class="required-mark">*</span>
+                </label>
+
+                {{ form.category }}
+
+                {% if form.category.errors %}
+
+                    <div class="field-errors" role="alert">
+                        {{ form.category.errors }}
+                    </div>
+
+                {% endif %}
+
+                <small class="field-hint">
+                    Choose the category that best describes this transaction.
+                </small>
+
+            </div>
+
+
+            <!-- Title -->
+
+            <div class="field-group wide-field">
+
+                <label for="{{ form.title.id_for_label }}">
+                    Transaction title
+                    <span class="required-mark">*</span>
+                </label>
+
+                {{ form.title }}
+
+                {% if form.title.errors %}
+
+                    <div class="field-errors" role="alert">
+                        {{ form.title.errors }}
+                    </div>
+
+                {% endif %}
+
+                <small class="field-hint">
+                    Example: Monthly salary, Grocery shopping, Electricity bill.
+                </small>
+
+            </div>
+
+
+            <!-- Amount -->
+
+            <div class="field-group">
+
+                <label for="{{ form.amount.id_for_label }}">
+                    Amount (₹)
+                    <span class="required-mark">*</span>
+                </label>
+
+                {{ form.amount }}
+
+                {% if form.amount.errors %}
+
+                    <div class="field-errors" role="alert">
+                        {{ form.amount.errors }}
+                    </div>
+
+                {% endif %}
+
+                <small class="field-hint">
+                    Enter the transaction amount in Indian Rupees.
+                </small>
+
+            </div>
+
+
+            <!-- Date -->
+
+            <div class="field-group">
+
+                <label for="{{ form.date.id_for_label }}">
+                    Transaction date
+                    <span class="required-mark">*</span>
+                </label>
+
+                {{ form.date }}
+
+                {% if form.date.errors %}
+
+                    <div class="field-errors" role="alert">
+                        {{ form.date.errors }}
+                    </div>
+
+                {% endif %}
+
+                <small class="field-hint">
+                    Select when this transaction occurred.
+                </small>
+
+            </div>
+
+
+            <!-- Account / Wallet -->
+
+            <div class="field-group">
+
+                <label for="{{ form.account.id_for_label }}">
+                    Account / Wallet
+                    <span class="optional-label">Optional</span>
+                </label>
+
+                {{ form.account }}
+
+                {% if form.account.errors %}
+
+                    <div class="field-errors" role="alert">
+                        {{ form.account.errors }}
+                    </div>
+
+                {% endif %}
+
+                <small class="field-hint">
+                    Select the bank, card, or cash wallet for this entry.
+                </small>
+
+            </div>
+
+
+            <!-- Payment Method -->
+
+            <div class="field-group">
+
+                <label for="{{ form.payment_method.id_for_label }}">
+                    Payment method
+                    <span class="optional-label">Optional</span>
+                </label>
+
+                {{ form.payment_method }}
+
+                {% if form.payment_method.errors %}
+
+                    <div class="field-errors" role="alert">
+                        {{ form.payment_method.errors }}
+                    </div>
+
+                {% endif %}
+
+                <small class="field-hint">
+                    e.g. UPI, Debit Card, Cash, Bank Transfer.
+                </small>
+
+            </div>
+
+
+            <!-- Description -->
+
+            <div class="field-group wide-field">
+
+                <label for="{{ form.description.id_for_label }}">
+                    Description
+                    <span class="optional-label">Optional</span>
+                </label>
+
+                {{ form.description }}
+
+                {% if form.description.errors %}
+
+                    <div class="field-errors" role="alert">
+                        {{ form.description.errors }}
+                    </div>
+
+                {% endif %}
+
+                <small class="field-hint">
+                    Add extra details or notes about this transaction.
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================
+             FORM FOOTER
+        ================================== -->
+
+        <div class="form-actions">
+
+            <a
+                class="btn btn-light"
+                href="{% url 'transaction_list' %}"
+            >
+                Cancel
+            </a>
+
+            <button
+                class="btn btn-primary"
+                type="submit"
+            >
+                {{ submit_label }} →
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+
+{% endblock %}

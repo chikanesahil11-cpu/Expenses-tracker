@@ -1,0 +1,184 @@
+{% extends 'expenses/base.html' %}
+{% load humanize %}
+
+{% block title %}Calendar · {{ current_month_label }} · Ledgerly{% endblock %}
+
+{% block content %}
+<!-- =========================================
+     PAGE HEADER & MONTH NAVIGATION
+========================================= -->
+<div class="page-heading premium-heading mb-3">
+    <div>
+        <p class="eyebrow">TRANSACTION MATRIX</p>
+        <h1>{{ current_month_label }}</h1>
+        <p>Day-by-day cash flow overview and scheduled financial timeline.</p>
+    </div>
+
+    <div class="heading-actions d-flex align-items-center gap-2">
+        <a class="btn btn-light" href="?year={{ prev_month.year }}&amp;month={{ prev_month.month }}">
+            ← Prev
+        </a>
+        <a class="btn btn-outline-primary" href="?year={{ today.year }}&amp;month={{ today.month }}&amp;date={{ today|date:'Y-m-d' }}">
+            Today
+        </a>
+        <a class="btn btn-light" href="?year={{ next_month.year }}&amp;month={{ next_month.month }}">
+            Next →
+        </a>
+        <a class="btn btn-primary" href="{% url 'transaction_create' %}?date={{ selected_date|date:'Y-m-d' }}">
+            ＋ Add on {{ selected_date|date:'d M' }}
+        </a>
+    </div>
+</div>
+
+<!-- =========================================
+     MONTH FINANCIAL SUMMARY
+========================================= -->
+<section class="stats-grid premium-stats mb-4">
+    <article class="stat-card income-card">
+        <span class="stat-icon">↗</span>
+        <p>Monthly Income</p>
+        <h2 class="amount-income">₹{{ month_income|floatformat:2|intcomma }}</h2>
+        <small>Total credited in {{ current_month_label }}</small>
+    </article>
+
+    <article class="stat-card expense-card">
+        <span class="stat-icon">↘</span>
+        <p>Monthly Expenses</p>
+        <h2 class="amount-expense">₹{{ month_expense|floatformat:2|intcomma }}</h2>
+        <small>Total debited in {{ current_month_label }}</small>
+    </article>
+
+    <article class="stat-card balance-card">
+        <span class="stat-icon">◈</span>
+        <p>Monthly Net Balance</p>
+        <h2>₹{{ month_net|floatformat:2|intcomma }}</h2>
+        <small>{% if month_net >= 0 %}Net surplus{% else %}Net deficit{% endif %} for this month</small>
+    </article>
+</section>
+
+<!-- =========================================
+     MONTHLY CALENDAR GRID
+========================================= -->
+<section class="panel calendar-panel mb-4 p-3 p-md-4">
+    <div class="calendar-header-row mb-2">
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div>Sat</div>
+        <div>Sun</div>
+    </div>
+
+    <div class="calendar-grid">
+        {% for week in month_matrix %}
+            {% for cell in week %}
+                <a href="?year={{ year }}&amp;month={{ month }}&amp;date={{ cell.date|date:'Y-m-d' }}"
+                   class="calendar-day {% if not cell.is_current_month %}other-month{% endif %} {% if cell.is_today %}is-today{% endif %} {% if cell.date == selected_date %}is-selected{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="day-number">{{ cell.day }}</span>
+                        {% if cell.is_today %}
+                            <span class="badge bg-success" style="font-size: 0.6rem;">TODAY</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="day-metrics">
+                        {% if cell.income > 0 %}
+                            <div class="calendar-badge badge-income">
+                                +₹{{ cell.income|floatformat:0|intcomma }}
+                            </div>
+                        {% endif %}
+
+                        {% if cell.expense > 0 %}
+                            <div class="calendar-badge badge-expense">
+                                −₹{{ cell.expense|floatformat:0|intcomma }}
+                            </div>
+                        {% endif %}
+
+                        {% if cell.count > 0 %}
+                            <div class="day-net-mini {% if cell.net >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                Net: ₹{{ cell.net|floatformat:0|intcomma }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </a>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</section>
+
+<!-- =========================================
+     SELECTED DAY TRANSACTION DRAWER
+========================================= -->
+<section class="panel recent-panel">
+    <div class="panel-heading d-flex flex-wrap justify-content-between align-items-center">
+        <div>
+            <p class="eyebrow">SELECTED TIMELINE</p>
+            <h2>{{ selected_date|date:'l, d F Y' }}</h2>
+            <p>
+                Income: <strong class="amount-income">+₹{{ selected_day_income|floatformat:2|intcomma }}</strong> ·
+                Expense: <strong class="amount-expense">−₹{{ selected_day_expense|floatformat:2|intcomma }}</strong> ·
+                Net: <strong>₹{{ selected_day_net|floatformat:2|intcomma }}</strong>
+            </p>
+        </div>
+
+        <a class="btn btn-sm btn-primary" href="{% url 'transaction_create' %}?date={{ selected_date|date:'Y-m-d' }}">
+            ＋ Add transaction for this day
+        </a>
+    </div>
+
+    {% if selected_day_transactions %}
+        <div class="table-responsive">
+            <table class="table transaction-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>TRANSACTION</th>
+                        <th>CATEGORY</th>
+                        <th>ACCOUNT</th>
+                        <th class="text-end">AMOUNT</th>
+                        <th class="text-end">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in selected_day_transactions %}
+                        <tr>
+                            <td>
+                                <a class="transaction-name" href="{% url 'transaction_detail' transaction.pk %}">
+                                    {{ transaction.title }}
+                                </a>
+                                {% if transaction.description %}
+                                    <small>{{ transaction.description|truncatechars:42 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="category-pill">{{ transaction.category.name }}</span>
+                            </td>
+                            <td>
+                                {% if transaction.account %}
+                                    <span class="badge bg-dark border border-secondary text-light">{{ transaction.account.name }}</span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end amount {% if transaction.transaction_type == 'income' %}amount-income{% else %}amount-expense{% endif %}">
+                                {% if transaction.transaction_type == 'income' %}+{% else %}−{% endif %}₹{{ transaction.amount|floatformat:2|intcomma }}
+                            </td>
+                            <td class="text-end action-cell">
+                                <a class="icon-action" href="{% url 'transaction_detail' transaction.pk %}">View</a>
+                                <a class="icon-action" href="{% url 'transaction_update' transaction.pk %}">Edit</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="p-4 text-center text-muted">
+            <p class="mb-2">No transactions recorded for this date.</p>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'transaction_create' %}?date={{ selected_date|date:'Y-m-d' }}">
+                Record a transaction on {{ selected_date|date:'d M Y' }}
+            </a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends 'expenses/base.html' %}
+{% block title %}Import transactions · Ledgerly{% endblock %}
+{% block content %}
+<div class="page-heading compact-heading"><div><p class="eyebrow">DATA IMPORT</p><h1>Import transactions</h1><p>Bring in past transactions from a CSV file.</p></div><a class="btn btn-light" href="{% url 'transaction_list' %}">Back to transactions</a></div>
+<section class="panel import-panel"><div class="import-guide"><span>CSV FORMAT</span><code>title, amount, type, category, date, description</code><p>Use <strong>income</strong> or <strong>expense</strong> for type, an existing Ledgerly category name, and dates in <strong>YYYY-MM-DD</strong> format. The description column is optional.</p><a href="{% url 'transaction_export_csv' %}" class="text-link">Download your current CSV format →</a></div><form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}<div class="field-group"><label for="{{ form.csv_file.id_for_label }}">{{ form.csv_file.label }}</label>{{ form.csv_file }}{% if form.csv_file.help_text %}<div class="form-text">{{ form.csv_file.help_text }}</div>{% endif %}{% if form.csv_file.errors %}<div class="field-errors">{{ form.csv_file.errors }}</div>{% endif %}</div><button class="btn btn-primary" type="submit">Import transactions</button></form></section>
+{% endblock %}

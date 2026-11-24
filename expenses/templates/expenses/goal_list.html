@@ -1,0 +1,138 @@
+{% extends 'expenses/base.html' %}
+{% load humanize %}
+
+{% block title %}Savings Goals · Ledgerly{% endblock %}
+
+{% block content %}
+<!-- =========================================
+     PAGE HEADER
+========================================= -->
+<div class="page-heading premium-heading mb-3">
+    <div>
+        <p class="eyebrow">FINANCIAL TARGETS</p>
+        <h1>Savings Goals</h1>
+        <p>Set ambitious milestones, track savings progress, and celebrate reaching your financial goals.</p>
+    </div>
+
+    <div class="heading-actions">
+        <a class="btn btn-primary" href="{% url 'goal_create' %}">
+            ＋ Create Goal
+        </a>
+    </div>
+</div>
+
+<!-- =========================================
+     SAVINGS PORTFOLIO OVERVIEW
+========================================= -->
+<section class="stats-grid premium-stats mb-4">
+    <article class="stat-card balance-card">
+        <span class="stat-icon">◈</span>
+        <p>Total Saved So Far</p>
+        <h2 class="amount-income">₹{{ total_saved|floatformat:2|intcomma }}</h2>
+        <small>Accumulated across all active goals</small>
+    </article>
+
+    <article class="stat-card count-card">
+        <span class="stat-icon">◎</span>
+        <p>Total Target Amount</p>
+        <h2>₹{{ total_target|floatformat:2|intcomma }}</h2>
+        <small>Target across {{ goal_count }} goal{{ goal_count|pluralize }}</small>
+    </article>
+
+    <article class="stat-card savings-card">
+        <span class="stat-icon">⌁</span>
+        <p>Overall Milestone Progress</p>
+        <h2>{{ overall_progress|floatformat:1 }}%</h2>
+        <small>{{ completed_count }} of {{ goal_count }} completed</small>
+    </article>
+</section>
+
+<!-- =========================================
+     GOALS GRID
+========================================= -->
+{% if goals %}
+    <section class="row g-3">
+        {% for goal in goals %}
+            <div class="col-md-6 col-lg-4">
+                <article class="panel h-100 p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h3 class="h5 mb-1 fw-bold">{{ goal.name }}</h3>
+                                <small class="text-muted d-block">
+                                    {% if goal.target_date %}
+                                        Target: {{ goal.target_date|date:'d M Y' }}
+                                    {% else %}
+                                        Open-ended milestone
+                                    {% endif %}
+                                </small>
+                            </div>
+
+                            <span class="badge {% if goal.is_complete %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if goal.is_complete %}Reached ✓{% else %}{{ goal.progress_percentage }}%{% endif %}
+                            </span>
+                        </div>
+
+                        <div class="my-3">
+                            <span class="text-muted small d-block">SAVED / TARGET</span>
+                            <div class="d-flex align-items-baseline gap-2">
+                                <h3 class="h4 mb-0 fw-bold font-numeric text-success">
+                                    ₹{{ goal.current_amount|floatformat:2|intcomma }}
+                                </h3>
+                                <span class="text-muted small">of ₹{{ goal.target_amount|floatformat:2|intcomma }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="progress premium-progress my-3" style="height: 9px;">
+                            <div class="progress-bar bg-success"
+                                 role="progressbar"
+                                 style="width: {{ goal.progress_percentage }}%;">
+                            </div>
+                        </div>
+
+                        <!-- Quick Deposit Action -->
+                        {% if not goal.is_complete %}
+                            <form method="post" action="{% url 'goal_deposit' goal.pk %}" class="my-3 d-flex gap-2 align-items-center">
+                                {% csrf_token %}
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-dark border-secondary text-muted">₹</span>
+                                    <input type="number" step="0.01" min="0.01" name="amount" placeholder="Add savings" class="form-control form-control-sm" required>
+                                    <button class="btn btn-sm btn-outline-primary" type="submit">＋ Deposit</button>
+                                </div>
+                            </form>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-2">
+                        <small class="text-muted">
+                            {% if goal.is_complete %}
+                                Milestone achieved! 🎉
+                            {% else %}
+                                Remaining: ₹{{ goal.target_amount|add:goal.current_amount|floatformat:2|intcomma }}
+                            {% endif %}
+                        </small>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <a class="icon-action" href="{% url 'goal_update' goal.pk %}">Edit</a>
+                            <form method="post" action="{% url 'goal_delete' goal.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button class="icon-action danger" type="submit" data-confirm="Delete savings goal ‘{{ goal.name|escapejs }}’?">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        {% endfor %}
+    </section>
+{% else %}
+    <div class="panel empty-state full-empty text-center p-5">
+        <div class="empty-icon mb-3">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+        </div>
+        <h3>No savings goals created yet</h3>
+        <p class="text-muted mb-4">Define targets for emergencies, vacations, new purchases, or long-term financial freedom.</p>
+        <a class="btn btn-primary" href="{% url 'goal_create' %}">＋ Create your first goal</a>
+    </div>
+{% endif %}
+{% endblock %}
