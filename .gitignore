@@ -9,6 +9,7 @@ __pycache__/
 *.sqlite3.bak
 *.bak
 db.sqlite3*
+datadump*.json
 
 # Environment and secrets
 .env
