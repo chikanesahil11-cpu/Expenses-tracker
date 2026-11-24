@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: ledgerly
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    plan: free
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.14.2
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: postgresql://ledgerly_sneu_user:U7DPhPKCcbt4FMATf8dCGcyWxWiXkA4S@dpg-dc2udnl9fdbs73fc0tc0-a/ledgerly_sneu
+      - key: WEB_CONCURRENCY
+        value: "2"
