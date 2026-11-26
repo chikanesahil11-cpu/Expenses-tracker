@@ -28,6 +28,8 @@
     padding: 24px !important;
     position: relative !important;
     overflow: hidden !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
     transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
     display: flex !important;
@@ -119,9 +121,16 @@ html[data-theme='light'] .bento-gauge-bg {
 }
 
 @media (max-width: 768px) {
-    .bento-grid { grid-template-columns: 1fr !important; }
+    .bento-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px !important;
+    }
     .bento-col-12, .bento-col-8, .bento-col-7, .bento-col-6, .bento-col-5, .bento-col-4, .bento-col-3 {
         grid-column: span 1 !important;
+    }
+    .bento-card {
+        padding: 16px !important;
+        border-radius: 16px !important;
     }
 }
 

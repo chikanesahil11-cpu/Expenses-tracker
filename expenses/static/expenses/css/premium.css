@@ -421,8 +421,10 @@ html[data-theme='light'] .theme-icon-moon {
 .heading-actions {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
     flex-shrink: 0;
+    max-width: 100%;
 }
 
 /* ==========================================================================
@@ -1308,7 +1310,10 @@ td.muted {
 
     .page-area {
         width: 100%;
+        min-width: 0;
+        max-width: 100%;
         margin-left: 0;
+        overflow-x: clip;
     }
 
     .mobile-header {
@@ -1359,10 +1364,11 @@ td.muted {
 
     .heading-actions {
         width: 100%;
+        flex-wrap: wrap;
     }
 
     .heading-actions .btn {
-        flex: 1;
+        flex: 1 1 auto;
     }
 
     .calendar-day {
@@ -1405,6 +1411,8 @@ td.muted {
     padding: 24px;
     position: relative;
     overflow: hidden;
+    min-width: 0;
+    max-width: 100%;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
                 border-color 0.25s ease, 
@@ -1688,8 +1696,10 @@ html[data-theme='light'] .bento-savings-meta {
     border-radius: 999px;
     padding: 5px 6px;
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 4px;
+    max-width: 100%;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
@@ -1860,8 +1870,8 @@ html[data-theme='light'] .bento-table td {
 
 @media (max-width: 768px) {
     .bento-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
     }
     .bento-col-12,
     .bento-col-8,
@@ -1872,12 +1882,32 @@ html[data-theme='light'] .bento-table td {
     .bento-col-3 {
         grid-column: span 1;
     }
+    .bento-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
     .bento-hero-top {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
     }
     .bento-net-balance {
-        font-size: 1.9rem;
+        font-size: 1.75rem;
+        word-break: break-word;
+    }
+    .bento-timeframe-bar {
+        border-radius: 14px;
+        width: 100%;
+    }
+    .custom-date-form {
+        width: 100%;
+    }
+    .custom-date-form input[type="date"] {
+        max-width: none;
+        flex: 1 1 130px;
+    }
+    .bento-table thead th,
+    .bento-table td {
+        padding: 10px 8px;
     }
 }
