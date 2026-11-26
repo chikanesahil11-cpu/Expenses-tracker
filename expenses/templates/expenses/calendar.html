@@ -1,5 +1,5 @@
 {% extends 'expenses/base.html' %}
-{% load humanize %}
+{% load humanize ledgerly_tags %}
 
 {% block title %}Calendar · {{ current_month_label }} · Ledgerly{% endblock %}
 
@@ -37,21 +37,21 @@
     <article class="stat-card income-card">
         <span class="stat-icon">↗</span>
         <p>Monthly Income</p>
-        <h2 class="amount-income">₹{{ month_income|floatformat:2|intcomma }}</h2>
+        <h2 class="amount-income">{{ month_income|money:currency_symbol }}</h2>
         <small>Total credited in {{ current_month_label }}</small>
     </article>
 
     <article class="stat-card expense-card">
         <span class="stat-icon">↘</span>
         <p>Monthly Expenses</p>
-        <h2 class="amount-expense">₹{{ month_expense|floatformat:2|intcomma }}</h2>
+        <h2 class="amount-expense">{{ month_expense|money:currency_symbol }}</h2>
         <small>Total debited in {{ current_month_label }}</small>
     </article>
 
     <article class="stat-card balance-card">
         <span class="stat-icon">◈</span>
         <p>Monthly Net Balance</p>
-        <h2>₹{{ month_net|floatformat:2|intcomma }}</h2>
+        <h2>{{ month_net|money:currency_symbol }}</h2>
         <small>{% if month_net >= 0 %}Net surplus{% else %}Net deficit{% endif %} for this month</small>
     </article>
 </section>
@@ -61,13 +61,9 @@
 ========================================= -->
 <section class="panel calendar-panel mb-4 p-3 p-md-4">
     <div class="calendar-header-row mb-2">
-        <div>Mon</div>
-        <div>Tue</div>
-        <div>Wed</div>
-        <div>Thu</div>
-        <div>Fri</div>
-        <div>Sat</div>
-        <div>Sun</div>
+        {% for day_label in weekday_headers %}
+            <div>{{ day_label }}</div>
+        {% endfor %}
     </div>
 
     <div class="calendar-grid">
@@ -85,19 +81,19 @@
                     <div class="day-metrics">
                         {% if cell.income > 0 %}
                             <div class="calendar-badge badge-income">
-                                +₹{{ cell.income|floatformat:0|intcomma }}
+                                +{{ cell.income|money_whole:currency_symbol }}
                             </div>
                         {% endif %}
 
                         {% if cell.expense > 0 %}
                             <div class="calendar-badge badge-expense">
-                                −₹{{ cell.expense|floatformat:0|intcomma }}
+                                −{{ cell.expense|money_whole:currency_symbol }}
                             </div>
                         {% endif %}
 
                         {% if cell.count > 0 %}
                             <div class="day-net-mini {% if cell.net >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                Net: ₹{{ cell.net|floatformat:0|intcomma }}
+                                Net: {{ cell.net|money_whole:currency_symbol }}
                             </div>
                         {% endif %}
                     </div>
@@ -116,9 +112,9 @@
             <p class="eyebrow">SELECTED TIMELINE</p>
             <h2>{{ selected_date|date:'l, d F Y' }}</h2>
             <p>
-                Income: <strong class="amount-income">+₹{{ selected_day_income|floatformat:2|intcomma }}</strong> ·
-                Expense: <strong class="amount-expense">−₹{{ selected_day_expense|floatformat:2|intcomma }}</strong> ·
-                Net: <strong>₹{{ selected_day_net|floatformat:2|intcomma }}</strong>
+                Income: <strong class="amount-income">+{{ selected_day_income|money:currency_symbol }}</strong> ·
+                Expense: <strong class="amount-expense">−{{ selected_day_expense|money:currency_symbol }}</strong> ·
+                Net: <strong>{{ selected_day_net|money:currency_symbol }}</strong>
             </p>
         </div>
 
@@ -161,7 +157,7 @@
                                 {% endif %}
                             </td>
                             <td class="text-end amount {% if transaction.transaction_type == 'income' %}amount-income{% else %}amount-expense{% endif %}">
-                                {% if transaction.transaction_type == 'income' %}+{% else %}−{% endif %}₹{{ transaction.amount|floatformat:2|intcomma }}
+                                {% if transaction.transaction_type == 'income' %}+{% else %}−{% endif %}{{ transaction.amount|money:currency_symbol }}
                             </td>
                             <td class="text-end action-cell">
                                 <a class="icon-action" href="{% url 'transaction_detail' transaction.pk %}">View</a>

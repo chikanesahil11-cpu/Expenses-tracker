@@ -1,5 +1,5 @@
 {% extends 'expenses/base.html' %}
-{% load humanize %}
+{% load humanize ledgerly_tags %}
 
 {% block title %}{{ transaction.title }} · Ledgerly{% endblock %}
 
@@ -37,7 +37,7 @@
         <div class="detail-hero-info">
             <span class="detail-overline">TRANSACTION AMOUNT</span>
             <div class="detail-amount {% if transaction.transaction_type == 'income' %}amount-income{% else %}amount-expense{% endif %}">
-                {% if transaction.transaction_type == 'income' %}+{% else %}−{% endif %}₹{{ transaction.amount|floatformat:2|intcomma }}
+                {% if transaction.transaction_type == 'income' %}+{% else %}−{% endif %}{{ transaction.amount|money:currency_symbol }}
             </div>
             <div class="d-flex align-items-center gap-2 mt-1">
                 <span class="type-label {{ transaction.transaction_type }}">
@@ -85,7 +85,7 @@
 
         <div class="detail-item">
             <span class="detail-label">TRANSACTION DATE</span>
-            <strong>{{ transaction.date|date:'d F Y' }}</strong>
+            <strong>{{ transaction.date|user_date:user_date_format }}</strong>
         </div>
 
         <div class="detail-item">

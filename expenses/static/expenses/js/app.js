@@ -15,6 +15,8 @@
 
     const chartText = '#929B96';
     const chartGrid = 'rgba(255, 255, 255, 0.04)';
+    const currencySymbol = document.documentElement.dataset.currencySymbol || '₹';
+    const currencyLocale = document.documentElement.dataset.currencyLocale || 'en-IN';
 
     function baseOptions() {
         const isDark = document.documentElement.dataset.theme !== 'light';
@@ -67,7 +69,7 @@
                     boxPadding: 6,
                     callbacks: {
                         label: context =>
-                            ` ${context.dataset.label}: ₹${Number(context.raw).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                            ` ${context.dataset.label}: ${currencySymbol}${Number(context.raw).toLocaleString(currencyLocale, { minimumFractionDigits: 2 })}`
                     }
                 }
             },
@@ -108,7 +110,7 @@
                             weight: '500'
                         },
                         callback: value =>
-                            '₹' + Number(value).toLocaleString('en-IN')
+                            currencySymbol + Number(value).toLocaleString(currencyLocale)
                     }
                 }
             }
@@ -252,7 +254,7 @@
                             cornerRadius: 10,
                             callbacks: {
                                 label: context =>
-                                    ` ${context.label}: ₹${Number(context.raw).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                                    ` ${context.label}: ${currencySymbol}${Number(context.raw).toLocaleString(currencyLocale, { minimumFractionDigits: 2 })}`
                             }
                         }
                     }

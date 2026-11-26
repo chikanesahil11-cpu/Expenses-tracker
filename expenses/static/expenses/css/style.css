@@ -7,7 +7,7 @@
 ================================== */
 
 .category-section {
-    margin-top: 32px;
+    margin-top: 28px;
 }
 
 .category-grid {
@@ -20,37 +20,42 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 22px;
-    background: var(--card-bg, #ffffff);
-    border: 1px solid var(--border-color, #e8edf5);
+    padding: 20px 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 16px;
-    transition: transform .2s ease, box-shadow .2s ease;
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 
 .category-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(20, 35, 65, .08);
+    transform: translateY(-2px);
+    border-color: rgba(16, 185, 129, 0.35);
+    box-shadow: var(--shadow-md);
 }
 
 .category-icon {
-    width: 48px;
-    height: 48px;
+    width: 46px;
+    height: 46px;
     flex-shrink: 0;
     display: grid;
     place-items: center;
-    border-radius: 14px;
-    font-size: 25px;
+    border-radius: 12px;
+    font-size: 1.25rem;
     font-weight: 700;
 }
 
 .income-category .category-icon {
-    color: #159b70;
-    background: #e7f8f1;
+    color: var(--emerald);
+    background: var(--emerald-soft);
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .expense-category .category-icon {
-    color: #e05b65;
-    background: #fff0f0;
+    color: var(--rose);
+    background: var(--rose-soft);
+    border: 1px solid rgba(251, 113, 133, 0.2);
 }
 
 .category-info {
@@ -59,71 +64,52 @@
 }
 
 .category-info h3 {
-    margin: 0 0 5px;
-    font-size: 16px;
+    margin: 0 0 4px;
+    font-size: 1rem;
     font-weight: 700;
+    color: var(--ink);
 }
 
 .category-info p {
     margin: 0;
-    color: var(--muted-color, #8290a5);
-    font-size: 13px;
+    color: var(--muted);
+    font-size: 0.8rem;
 }
 
 .category-meta {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 4px;
+    gap: 2px;
 }
 
 .category-meta strong {
-    font-size: 19px;
+    font-size: 1.15rem;
     font-weight: 700;
+    color: var(--ink);
+    font-feature-settings: 'tnum' 1;
 }
 
-.category-meta span,
-.category-count {
-    color: var(--muted-color, #8290a5);
-    font-size: 12px;
-}
-
-.category-count {
-    padding: 8px 12px;
-    background: var(--card-bg, #f4f6fa);
-    border-radius: 20px;
+.category-meta span {
+    color: var(--muted);
+    font-size: 0.74rem;
 }
 
 .filter-bar {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-    margin-top: 20px;
+    align-items: center;
 }
 
-.filter-bar input,
-.filter-bar select {
-    min-height: 44px;
-    padding: 10px 14px;
-    border: 1px solid var(--border-color, #e3e8f0);
-    border-radius: 10px;
-    background: var(--card-bg, #ffffff);
-    color: inherit;
+.filter-bar .form-control,
+.filter-bar .form-select {
     flex: 1;
-    min-width: 150px;
+    min-width: 180px;
 }
 
-.empty-state {
-    padding: 30px;
-    text-align: center;
-    background: var(--card-bg, #ffffff);
-    border: 1px dashed var(--border-color, #e3e8f0);
-    border-radius: 15px;
+.category-empty {
     grid-column: 1 / -1;
-}
-
-.empty-state p {
-    color: var(--muted-color, #8290a5);
 }
 
 @media (max-width: 700px) {

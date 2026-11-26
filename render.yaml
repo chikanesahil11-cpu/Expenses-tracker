@@ -13,6 +13,6 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        value: postgresql://ledgerly_sneu_user:U7DPhPKCcbt4FMATf8dCGcyWxWiXkA4S@dpg-dc2udnl9fdbs73fc0tc0-a/ledgerly_sneu
+        sync: false
       - key: WEB_CONCURRENCY
         value: "2"

@@ -197,7 +197,7 @@ class RecurringTransactionForm(StyledFormMixin, forms.ModelForm):
 class TransactionImportForm(StyledFormMixin, forms.Form):
     csv_file = forms.FileField(
         label='CSV file',
-        help_text='Columns: title, amount, type, category, date, description (description is optional).',
+        help_text='Columns: title, amount, type, category, date (optional: account, payment_method, description).',
     )
 
     def __init__(self, *args, **kwargs):

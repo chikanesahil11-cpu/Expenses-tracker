@@ -387,3 +387,157 @@ class ExpenseTrackerTests(TestCase):
         self.assertRedirects(toggle_res2, reverse('recurring_list'))
         recurring.refresh_from_db()
         self.assertTrue(recurring.is_active)
+
+    def test_account_balance_syncs_with_transaction_crud_and_csv_import(self):
+        self.client.login(username='owner', password='safe-password-2026')
+        checking = Account.objects.create(
+            owner=self.user, name='Main Bank', account_type='bank', balance=Decimal('1000.00')
+        )
+        cash = Account.objects.create(
+            owner=self.user, name='Cash Pouch', account_type='cash', balance=Decimal('500.00')
+        )
+
+        # Create expense -> decreases checking
+        self.client.post(reverse('transaction_create'), {
+            'title': 'Dinner',
+            'amount': '200.00',
+            'transaction_type': 'expense',
+            'category': self.expense_category.pk,
+            'account': checking.pk,
+            'date': '2026-11-23',
+        })
+        checking.refresh_from_db()
+        self.assertEqual(checking.balance, Decimal('800.00'))
+
+        tx = Transaction.objects.get(owner=self.user, title='Dinner')
+
+        # Update: switch account to cash and change to income 150 -> checking restored (1000), cash +150 (650)
+        self.client.post(reverse('transaction_update', args=[tx.pk]), {
+            'title': 'Refund',
+            'amount': '150.00',
+            'transaction_type': 'income',
+            'category': self.income_category.pk,
+            'account': cash.pk,
+            'date': '2026-11-23',
+        })
+        checking.refresh_from_db()
+        cash.refresh_from_db()
+        self.assertEqual(checking.balance, Decimal('1000.00'))
+        self.assertEqual(cash.balance, Decimal('650.00'))
+
+        # Delete -> cash restored to 500
+        self.client.post(reverse('transaction_delete', args=[tx.pk]))
+        cash.refresh_from_db()
+        self.assertEqual(cash.balance, Decimal('500.00'))
+
+        # CSV import with account column
+        csv_file = SimpleUploadedFile(
+            'acct.csv',
+            b'title,amount,type,category,account,date\nBonus,300.00,income,Test Salary,Main Bank,2026-11-23\n',
+            content_type='text/csv',
+        )
+        self.client.post(reverse('transaction_import_csv'), {'csv_file': csv_file})
+        checking.refresh_from_db()
+        self.assertEqual(checking.balance, Decimal('1300.00'))
+
+    def test_user_settings_currency_date_format_and_calendar_week_start_are_applied(self):
+        self.client.login(username='owner', password='safe-password-2026')
+        UserSettings.objects.create(
+            user=self.user,
+            currency='USD',
+            date_format='DD/MM/YYYY',
+            first_day_of_week='sunday',
+            theme_preference='light',
+        )
+        Transaction.objects.create(
+            owner=self.user,
+            title='Client Retainer',
+            amount=Decimal('1200.00'),
+            transaction_type='income',
+            category=self.income_category,
+            date=date(2026, 11, 5),
+        )
+
+        dash = self.client.get(reverse('dashboard'))
+        self.assertContains(dash, '$1,200.00')
+        self.assertContains(dash, '05/11/2026')
+        self.assertContains(dash, 'data-theme="light"')
+
+        cal = self.client.get(reverse('transaction_calendar'))
+        self.assertEqual(cal.context['weekday_headers'][0], 'Sun')
+        self.assertContains(cal, '$1,200.00')
+
+    def test_goal_remaining_amount_and_budget_over_display(self):
+        self.client.login(username='owner', password='safe-password-2026')
+        today = date.today()
+        SavingsGoal.objects.create(
+            owner=self.user,
+            name='Laptop',
+            target_amount=Decimal('1000.00'),
+            current_amount=Decimal('250.00'),
+        )
+        goal_res = self.client.get(reverse('goal_list'))
+        self.assertContains(goal_res, 'Remaining: ₹750.00')
+        self.assertNotContains(goal_res, 'Remaining: ₹1,250.00')
+
+        Budget.objects.create(
+            owner=self.user,
+            category=self.expense_category,
+            month=today.replace(day=1),
+            amount=Decimal('200.00'),
+        )
+        Transaction.objects.create(
+            owner=self.user,
+            title='Big Meal',
+            amount=Decimal('350.00'),
+            transaction_type='expense',
+            category=self.expense_category,
+            date=today,
+        )
+        budget_res = self.client.get(reverse('budget_list'))
+        self.assertContains(budget_res, 'Over by ₹150.00')
+
+    def test_csv_export_neutralizes_formula_injection(self):
+        self.client.login(username='owner', password='safe-password-2026')
+        Transaction.objects.create(
+            owner=self.user,
+            title='=CMD("calc")',
+            amount=Decimal('10.00'),
+            transaction_type='expense',
+            category=self.expense_category,
+            date=date(2026, 11, 20),
+            description='+SUM(A1:A2)',
+        )
+        export = self.client.get(reverse('transaction_export_csv'))
+        content = export.content.decode('utf-8')
+        self.assertIn("'=CMD(", content)
+        self.assertIn("'+SUM(A1:A2)", content)
+
+    def test_logout_buttons_present_and_logout_works(self):
+        self.client.login(username='owner', password='safe-password-2026')
+        dash = self.client.get(reverse('dashboard'))
+        self.assertContains(dash, reverse('logout'))
+        self.assertContains(dash, 'Log out')
+
+        sec = self.client.get(f"{reverse('settings_view')}?tab=security")
+        self.assertContains(sec, 'Active Session')
+        self.assertContains(sec, 'Log out')
+
+        res = self.client.post(reverse('logout'))
+        self.assertRedirects(res, reverse('login'))
+
+    def test_categories_page_and_clean_transaction_form(self):
+        self.client.login(username='owner', password='safe-password-2026')
+        cat_res = self.client.get(reverse('category_list'))
+        self.assertEqual(cat_res.status_code, 200)
+        self.assertContains(cat_res, 'Income categories')
+        self.assertContains(cat_res, 'Expense categories')
+
+        cat_expense = self.client.get(reverse('category_list'), {'type': 'expense'})
+        self.assertEqual(cat_expense.status_code, 200)
+        self.assertNotContains(cat_expense, '<h2>Income categories</h2>')
+        self.assertContains(cat_expense, '<h2>Expense categories</h2>')
+
+        form_res = self.client.get(reverse('transaction_create'))
+        self.assertEqual(form_res.status_code, 200)
+        self.assertNotContains(form_res, 'class="field-hint"')

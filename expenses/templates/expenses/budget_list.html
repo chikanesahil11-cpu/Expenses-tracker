@@ -1,5 +1,5 @@
 {% extends 'expenses/base.html' %}
-{% load humanize %}
+{% load humanize ledgerly_tags %}
 
 {% block title %}Budgets · Ledgerly{% endblock %}
 
@@ -34,16 +34,16 @@
     <div class="d-flex align-items-center gap-4 flex-wrap">
         <div>
             <span class="small text-muted d-block">TOTAL PLANNED</span>
-            <strong class="h6 mb-0 fw-bold">₹{{ summary.total_budget|floatformat:2|intcomma }}</strong>
+            <strong class="h6 mb-0 fw-bold">{{ summary.total_budget|money:currency_symbol }}</strong>
         </div>
         <div>
             <span class="small text-muted d-block">TOTAL SPENT</span>
-            <strong class="h6 mb-0 fw-bold text-danger">₹{{ summary.total_spent|floatformat:2|intcomma }}</strong>
+            <strong class="h6 mb-0 fw-bold text-danger">{{ summary.total_spent|money:currency_symbol }}</strong>
         </div>
         <div>
             <span class="small text-muted d-block">REMAINING BUFFER</span>
-            <strong class="h6 mb-0 fw-bold {% if summary.remaining >= 0 %}text-success{% else %}text-danger{% endif %}">
-                ₹{{ summary.remaining|floatformat:2|intcomma }}
+            <strong class="h6 mb-0 fw-bold {% if summary.overspent > 0 %}text-danger{% else %}text-success{% endif %}">
+                {% if summary.overspent > 0 %}Over by {{ summary.overspent|money:currency_symbol }}{% else %}{{ summary.remaining|money:currency_symbol }}{% endif %}
             </strong>
         </div>
         <div>
@@ -78,8 +78,8 @@
                         <div class="my-3">
                             <span class="text-muted small d-block">SPENT / BUDGETED</span>
                             <div class="d-flex align-items-baseline gap-2">
-                                <h3 class="h4 mb-0 fw-bold font-numeric">₹{{ budget.spent|floatformat:2|intcomma }}</h3>
-                                <span class="text-muted small">of ₹{{ budget.amount|floatformat:2|intcomma }}</span>
+                                <h3 class="h4 mb-0 fw-bold font-numeric">{{ budget.spent|money:currency_symbol }}</h3>
+                                <span class="text-muted small">of {{ budget.amount|money:currency_symbol }}</span>
                             </div>
                         </div>
 
@@ -96,10 +96,10 @@
                                 {{ budget.percentage|floatformat:1 }}% utilized
                             </span>
                             <span>
-                                {% if budget.remaining >= 0 %}
-                                    ₹{{ budget.remaining|floatformat:2|intcomma }} remaining
+                                {% if budget.is_over %}
+                                    Over by {{ budget.overspent|money:currency_symbol }}
                                 {% else %}
-                                    Over by ₹{{ budget.remaining|floatformat:2|intcomma|cut:'-' }}
+                                    {{ budget.remaining|money:currency_symbol }} remaining
                                 {% endif %}
                             </span>
                         </div>
@@ -108,7 +108,7 @@
                     {% if is_current_month and days_remaining > 0 and budget.remaining > 0 %}
                         <div class="pt-3 border-top mt-3 small d-flex justify-content-between align-items-center">
                             <span class="text-muted">Safe daily allowance:</span>
-                            <strong class="text-success">₹{{ budget.daily_allowance|floatformat:2|intcomma }}/day</strong>
+                            <strong class="text-success">{{ budget.daily_allowance|money:currency_symbol }}/day</strong>
                         </div>
                     {% endif %}
                 </article>

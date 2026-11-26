@@ -1,5 +1,5 @@
 {% extends 'expenses/base.html' %}
-{% load humanize %}
+{% load humanize ledgerly_tags %}
 
 {% block title %}Recurring Schedules · Ledgerly{% endblock %}
 
@@ -43,14 +43,14 @@
     <article class="stat-card income-card">
         <span class="stat-icon">↗</span>
         <p>Recurring Monthly Inflow</p>
-        <h2 class="amount-income">₹{{ monthly_income|floatformat:2|intcomma }}</h2>
+        <h2 class="amount-income">{{ monthly_income|money:currency_symbol }}</h2>
         <small>Expected monthly recurring credits</small>
     </article>
 
     <article class="stat-card expense-card">
         <span class="stat-icon">↘</span>
         <p>Recurring Monthly Commitment</p>
-        <h2 class="amount-expense">₹{{ monthly_commitment|floatformat:2|intcomma }}</h2>
+        <h2 class="amount-expense">{{ monthly_commitment|money:currency_symbol }}</h2>
         <small>Fixed recurring monthly debits</small>
     </article>
 </section>
@@ -97,9 +97,9 @@
                                 <span class="badge bg-secondary">{{ item.get_frequency_display }}</span>
                             </td>
                             <td class="muted">
-                                <strong>{{ item.next_run|date:'d M Y' }}</strong>
+                                <strong>{{ item.next_run|user_date:user_date_format }}</strong>
                                 {% if item.end_date %}
-                                    <small class="d-block text-muted">Ends {{ item.end_date|date:'d M Y' }}</small>
+                                    <small class="d-block text-muted">Ends {{ item.end_date|user_date:user_date_format }}</small>
                                 {% endif %}
                             </td>
                             <td>
@@ -110,7 +110,7 @@
                                 {% endif %}
                             </td>
                             <td class="text-end amount {% if item.transaction_type == 'income' %}amount-income{% else %}amount-expense{% endif %}">
-                                {% if item.transaction_type == 'income' %}+{% else %}−{% endif %}₹{{ item.amount|floatformat:2|intcomma }}
+                                {% if item.transaction_type == 'income' %}+{% else %}−{% endif %}{{ item.amount|money:currency_symbol }}
                             </td>
                             <td class="text-end action-cell">
                                 <form method="post" action="{% url 'recurring_toggle' item.pk %}" class="d-inline">

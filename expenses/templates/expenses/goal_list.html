@@ -1,5 +1,5 @@
 {% extends 'expenses/base.html' %}
-{% load humanize %}
+{% load humanize ledgerly_tags %}
 
 {% block title %}Savings Goals · Ledgerly{% endblock %}
 
@@ -28,14 +28,14 @@
     <article class="stat-card balance-card">
         <span class="stat-icon">◈</span>
         <p>Total Saved So Far</p>
-        <h2 class="amount-income">₹{{ total_saved|floatformat:2|intcomma }}</h2>
+        <h2 class="amount-income">{{ total_saved|money:currency_symbol }}</h2>
         <small>Accumulated across all active goals</small>
     </article>
 
     <article class="stat-card count-card">
         <span class="stat-icon">◎</span>
         <p>Total Target Amount</p>
-        <h2>₹{{ total_target|floatformat:2|intcomma }}</h2>
+        <h2>{{ total_target|money:currency_symbol }}</h2>
         <small>Target across {{ goal_count }} goal{{ goal_count|pluralize }}</small>
     </article>
 
@@ -61,7 +61,7 @@
                                 <h3 class="h5 mb-1 fw-bold">{{ goal.name }}</h3>
                                 <small class="text-muted d-block">
                                     {% if goal.target_date %}
-                                        Target: {{ goal.target_date|date:'d M Y' }}
+                                        Target: {{ goal.target_date|user_date:user_date_format }}
                                     {% else %}
                                         Open-ended milestone
                                     {% endif %}
@@ -77,9 +77,9 @@
                             <span class="text-muted small d-block">SAVED / TARGET</span>
                             <div class="d-flex align-items-baseline gap-2">
                                 <h3 class="h4 mb-0 fw-bold font-numeric text-success">
-                                    ₹{{ goal.current_amount|floatformat:2|intcomma }}
+                                    {{ goal.current_amount|money:currency_symbol }}
                                 </h3>
-                                <span class="text-muted small">of ₹{{ goal.target_amount|floatformat:2|intcomma }}</span>
+                                <span class="text-muted small">of {{ goal.target_amount|money:currency_symbol }}</span>
                             </div>
                         </div>
 
@@ -96,7 +96,7 @@
                             <form method="post" action="{% url 'goal_deposit' goal.pk %}" class="my-3 d-flex gap-2 align-items-center">
                                 {% csrf_token %}
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-dark border-secondary text-muted">₹</span>
+                                    <span class="input-group-text bg-dark border-secondary text-muted">{{ currency_symbol }}</span>
                                     <input type="number" step="0.01" min="0.01" name="amount" placeholder="Add savings" class="form-control form-control-sm" required>
                                     <button class="btn btn-sm btn-outline-primary" type="submit">＋ Deposit</button>
                                 </div>
@@ -109,7 +109,7 @@
                             {% if goal.is_complete %}
                                 Milestone achieved! 🎉
                             {% else %}
-                                Remaining: ₹{{ goal.target_amount|add:goal.current_amount|floatformat:2|intcomma }}
+                                Remaining: {{ goal.remaining_amount|money:currency_symbol }}
                             {% endif %}
                         </small>
 

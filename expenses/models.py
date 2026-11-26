@@ -191,6 +191,10 @@ class SavingsGoal(models.Model):
     def is_complete(self):
         return self.current_amount >= self.target_amount
 
+    @property
+    def remaining_amount(self):
+        return max(Decimal('0.00'), self.target_amount - self.current_amount)
+
     def __str__(self):
         return self.name
 
@@ -269,6 +273,22 @@ class RecurringTransaction(models.Model):
         return f'{self.title} ({self.get_frequency_display()})'
 
 
+CURRENCY_METADATA = {
+    'INR': ('₹', 'en-IN'),
+    'USD': ('$', 'en-US'),
+    'EUR': ('€', 'en-IE'),
+    'GBP': ('£', 'en-GB'),
+    'CAD': ('CA$', 'en-CA'),
+    'AUD': ('A$', 'en-AU'),
+    'JPY': ('¥', 'ja-JP'),
+}
+
+
+def get_currency_meta(code):
+    """Return (symbol, locale) for a supported ISO currency code."""
+    return CURRENCY_METADATA.get(code, ('₹', 'en-IN'))
+
+
 class UserSettings(models.Model):
     class CurrencyChoice(models.TextChoices):
         INR = 'INR', 'INR (₹) - Indian Rupee'
@@ -302,6 +322,14 @@ class UserSettings(models.Model):
     theme_preference = models.CharField(max_length=10, choices=ThemeChoice.choices, default=ThemeChoice.DARK)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def currency_symbol(self):
+        return get_currency_meta(self.currency)[0]
+
+    @property
+    def currency_locale(self):
+        return get_currency_meta(self.currency)[1]
 
     def __str__(self):
         return f'{self.user.username} Settings'

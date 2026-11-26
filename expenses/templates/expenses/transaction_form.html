@@ -51,7 +51,7 @@
         </div>
 
         <div class="form-heading-icon">
-            ₹
+            {{ currency_symbol }}
         </div>
 
     </div>
@@ -98,10 +98,6 @@
 
                 {% endif %}
 
-                <small class="field-hint">
-                    Select whether this is income or an expense.
-                </small>
-
             </div>
 
 
@@ -123,10 +119,6 @@
                     </div>
 
                 {% endif %}
-
-                <small class="field-hint">
-                    Choose the category that best describes this transaction.
-                </small>
 
             </div>
 
@@ -150,10 +142,6 @@
 
                 {% endif %}
 
-                <small class="field-hint">
-                    Example: Monthly salary, Grocery shopping, Electricity bill.
-                </small>
-
             </div>
 
 
@@ -162,7 +150,7 @@
             <div class="field-group">
 
                 <label for="{{ form.amount.id_for_label }}">
-                    Amount (₹)
+                    Amount ({{ currency_symbol }})
                     <span class="required-mark">*</span>
                 </label>
 
@@ -175,10 +163,6 @@
                     </div>
 
                 {% endif %}
-
-                <small class="field-hint">
-                    Enter the transaction amount in Indian Rupees.
-                </small>
 
             </div>
 
@@ -202,10 +186,6 @@
 
                 {% endif %}
 
-                <small class="field-hint">
-                    Select when this transaction occurred.
-                </small>
-
             </div>
 
 
@@ -227,10 +207,6 @@
                     </div>
 
                 {% endif %}
-
-                <small class="field-hint">
-                    Select the bank, card, or cash wallet for this entry.
-                </small>
 
             </div>
 
@@ -254,10 +230,6 @@
 
                 {% endif %}
 
-                <small class="field-hint">
-                    e.g. UPI, Debit Card, Cash, Bank Transfer.
-                </small>
-
             </div>
 
 
@@ -279,10 +251,6 @@
                     </div>
 
                 {% endif %}
-
-                <small class="field-hint">
-                    Add extra details or notes about this transaction.
-                </small>
 
             </div>
 

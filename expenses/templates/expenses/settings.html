@@ -284,6 +284,20 @@
     </form>
 </section>
 
+<!-- Session Sign Out -->
+<section class="panel p-4 max-w-700 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+        <h3 class="h5 fw-bold mb-1">Active Session</h3>
+        <p class="text-muted small mb-0">Signed in as <strong>{{ user.username }}</strong>. End your current session safely.</p>
+    </div>
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger btn-sm">
+            Log out
+        </button>
+    </form>
+</section>
+
 <!-- Danger Zone -->
 <section class="panel p-4 max-w-700 border-danger">
     <div class="danger-zone-info mb-3">
